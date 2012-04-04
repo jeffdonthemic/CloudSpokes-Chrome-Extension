@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Le styles -->
+    <link href="bootstrap/css/bootstrap.css" rel="stylesheet">
+	<script>
+	var baseUrl = "http://www.cloudspokes.com"
+	
+	function init() {
+		
+		// get the challenges
+		$.ajax({
+		    url: baseUrl + '/challenges.json',
+		    type: 'GET',
+		    success: function(data) {
+				$('#tbl-challenges tr');
+				var html = '';
+				for(var i = 0; i < data.length; i++)
+					html += '<tr><td><a href="' + baseUrl + '/challenges/' + data[i].Challenge_Id__c + '" target="_blank">' + data[i].Name + '</a><br><div style="font-size:x-small">' + joinCategories(data[i].Challenge_Categories__r) + '</div></td><td>' + formatDay(data[i].Days_till_Close__c) + '</td><td>$' + data[i].Total_Prize_Money__c + '</td></tr>';
+				$('#tbl-challenges tr').first().after(html);
+		    }
+		});
+		
+		// get the leaderboard
+		$.ajax({
+		    url: baseUrl + '/leaderboard.json',
+		    type: 'GET',
+		    success: function(data) {
+				$('#tbl-leaderboard tr');
+				var html = '';
+				for(var i = 0; i < data.length; i++)
+					html += '<tr><td width="10">' + data[i].rank + '</td><td width="55"><img src="' + data[i].profile_pic__c + '" width="50"></td><td><a href="' + baseUrl + '/members/' + data[i].username + '" target="_blank">' + data[i].username + '</a><br><div style="font-size:x-small">' + data[i].country__c + '</div></td><td>$' + Math.floor(data[i].total_money) + '</td></tr>';
+				$('#tbl-leaderboard tr').first().after(html);
+		    }
+		});
+		
+		// get payments
+		$.ajax({
+		    url: baseUrl + '/account/payments.json',
+		    type: 'GET',
+		    success: function(data) {
+				$('#tbl-payments tr');
+				var html = '';
+				for(var i = 0; i < data.length; i++)
+					html += '<tr><td>' + data[i].Name + '</td><td>' + data[i].Challenge__r.Name + '</td><td>' + data[i].Place__c + '</td><td>$' + Math.floor(data[i].Money__c) + '</td><td>' + data[i].Reason__c + '</td><td>' + data[i].Type__c + '</td><td>' + data[i].Payment_Sent__c + '</td><td>' + data[i].Reference_Number__c + '</td></tr>';
+				$('#tbl-payments tr').first().after(html);
+		    }
+		});
+	
+		document.body.style.width = "600px";
+		toggle('challenges');
+		
+	}
+	
+	function formatDay(days) {
+		if (days == 0) {
+			return " today!";
+		} else if (days == 1) {
+			return " 1 day";
+		} else {
+			return days + " days";
+		}		
+	}
+	
+	function joinCategories(categories) {
+		var joined = "";
+		var counter = 0;
+		for(var i = 0; i < categories.records.length; i++) {
+			joined = joined + categories.records[i].Display_Name__c
+			if (counter < categories.records.length-1)
+				joined = joined + ', ';
+			counter++;
+		}
+		return joined;
+	}
+	
+	function toggle(section) {
+		
+		// hide everything
+		if (section == "challenges") {
+			showChallenges();
+			hideLeaderboard();
+			hidePayments();
+			document.body.style.width = "600px";
+		} else if (section == "leaderboard") {
+			showLeaderboard();
+			hideChallenges();
+			hidePayments();
+			document.body.style.width = "600px";
+		} else if (section == "payments") {
+			showPayments();
+			hideChallenges();
+			hideLeaderboard();
+			document.body.style.width = "800px";
+		}
+		
+	}
+	
+	function hideChallenges() {
+		document.getElementById("challenges").style.display = "none";
+		document.getElementById("challenges").style.visibility = "hidden";
+	}
+	
+	function showChallenges() {
+		document.getElementById("challenges").style.display = "block";
+		document.getElementById("challenges").style.visibility = "visible";
+	}
+	
+	function hideLeaderboard() {
+		document.getElementById("leaderboard").style.display = "none";
+		document.getElementById("leaderboard").style.visibility = "hidden";
+	}
+	
+	function showLeaderboard() {
+		document.getElementById("leaderboard").style.display = "block";
+		document.getElementById("leaderboard").style.visibility = "visible";
+	}	
+	
+	function hidePayments() {
+		document.getElementById("payments").style.display = "none";
+		document.getElementById("payments").style.visibility = "hidden";
+	}
+	
+	function showPayments() {
+		document.getElementById("payments").style.display = "block";
+		document.getElementById("payments").style.visibility = "visible";
+	}
+	
+	function openWin(page) {
+		gotoUrl = baseUrl + '/' + page;
+		window.open(gotoUrl);
+	}
+	</script>
+	<script src="js/jquery-1.7.1.min.js" type="text/javascript"></script>
+
+    <link href="bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+
+  <body onload="init();">
+
+    <div class="container">
+
+		<table width="100%">
+		<tr>
+			<td><img src="images/cloudspokes-logo-hor.png" width="200" style="padding-bottom:10px"></td>
+			<td><a href="#" id="menuItem" onclick="toggle('challenges')">Open Challenges</a></td>
+			<td><a href="#" id="menuItem" onclick="toggle('leaderboard')">Current Leaderboard</a></td>
+			<td><a href="#" id="menuItem" onclick="toggle('payments')">Payments</a></td>
+		<tr>	
+		</table>
+	
+		<div id="challenges">
+
+			<table id="tbl-challenges" class="table table-condensed">
+		    <tr>
+		        <th>Challenge</th>
+				<th>Closes</th>
+				<th>Prizes</th>
+		    </tr>
+			</table>
+	
+			<form class="well form-search" method="get" action="http://www.cloudspokes.com/challenges" target="_blank">
+			  <input type="text" name="keyword" class="input-medium search-query" placeholder="Past Challenges...">
+			  <input type="hidden" name="show" value="closed">
+			  <button type="submit" class="btn">Search</button>
+			  <button type="button" class="btn-primary" style="margin-left:50px" onclick="openWin('challenges/recent');">Recently Completed</button>
+			</form>
+		
+		</div>
+		
+		<div id="leaderboard">
+
+			<table id="tbl-leaderboard" class="table table-condensed">
+		    <tr>
+				<th></th>			
+		        <th colspan="2">Member</th>
+				<th>Money</th>
+		    </tr>
+			</table>
+			
+			<form class="well form-search" method="get" action="http://www.cloudspokes.com/members/search" target="_blank">
+			  <input type="text" name="keyword" class="input-medium search-query" placeholder="Members...">
+			  <button type="submit" class="btn">Search</button>
+			</form>
+		
+		</div>
+
+		<div id="payments">
+
+			<table id="tbl-payments" class="table table-condensed">
+		    <tr>
+		        <th>ID</th>
+				<th>Challenge</th>
+				<th>Place</th>
+				<th>Amount</th>
+				<th>Reason</th>
+				<th>Type</th>
+				<th>Status</th>
+				<th>Ref &#35;</th>
+		    </tr>
+			</table>
+		
+		</div>
+
+		<hr>
+
+		<table cellpadding="2" cellspacing="2">
+		<tr>
+			<td><a href="http://www.github.com/cloudspokes" target="_blank"><img src="images/github_64.png" width="32"></a></td>
+			<td><a href="http://www.twitter.com/cloudspokes" target="_blank"><img src="images/twitter_64.png" width="32"></a></td>
+			<td><a href="http://www.facebook.com/cloudspokes" target="_blank"><img src="images/facebook_64.png" width="32"></a></td>
+			<td><a href="http://www.youtube.com/cloudspokescommunity" target="_blank"><img src="images/youtube_icon.png" width="28" style="padding-left:3px;padding-top:3px"></a></td>
+			<td><a href="http://blog.cloudspokes.com" target="_blank"><img src="images/blogicon.png" width="25" style="padding-left:5px;padding-top:4px"></a></td>
+			<td><a href="http://www.cloudspokes.com/challenges/feed" target="_blank"><img src="images/rss_icon.png" width="26" style="padding-left:5px;padding-top:3px"></a></td>
+		</tr>
+		</table>
+
+    </div> <!-- /container -->
+
+  </body>
+</html>
+
+
+
